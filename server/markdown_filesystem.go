@@ -36,7 +36,7 @@ func openMarkdown(name string, f http.File) (*markdownFile, error) {
 		Content: template.HTML(string(body_bs)),
 	}
 	buffer := new(bytes.Buffer)
-	t, err := template.ParseFiles("template.html")
+	t, err := template.ParseFiles("public-wiki.html")
 	if err != nil {
 		return nil, err
 	}
