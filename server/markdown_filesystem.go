@@ -111,9 +111,9 @@ type markdownFs struct {
 var _ http.FileSystem = &markdownFs{}
 
 func (fs *markdownFs) Open(name string) (http.File, error) {
-	realf, err := fs.fs.Open(name)
+	realf, err := fs.fs.Open(name + ".md")
 	if os.IsNotExist(err) {
-		realf, err = fs.fs.Open(name + ".md")
+		realf, err = fs.fs.Open(name)
 	}
 	if err != nil {
 		return nil, err
