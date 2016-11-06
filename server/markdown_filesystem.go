@@ -122,7 +122,7 @@ func (fs *markdownFs) Open(name string) (http.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	if finfo.IsDir() {
+	if finfo.IsDir() || !strings.HasSuffix(finfo.Name(), ".md") {
 		return realf, nil
 	} else {
 		return openMarkdown(name, realf)
