@@ -1,33 +1,30 @@
 package main
 
 import (
+        "context"
 	"crypto/tls"
 	"flag"
 	"log"
 	"net/http"
 	"os/user"
-	"rsc.io/letsencrypt"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 func run(register, listenhttp, listenhttps, state, serve string) {
-	var letsEncryptManager letsencrypt.Manager
-	if err := letsEncryptManager.CacheFile(state); err != nil {
-		log.Fatal(err)
-	}
-	if register != "" && !letsEncryptManager.Registered() {
-		letsEncryptManager.Register(register, func(terms string) bool {
-			log.Printf("Agreeing to %s ...", terms)
-			return true
-		})
-	}
+	letsEncryptManager := &autocert.Manager{
+            Cache:       autocert.DirCache(state),
+            Prompt:      autocert.AcceptTOS,
+            HostPolicy:  func(ctx context.Context, host string) error { return nil},
+            Email:       register,
+        }
 
+	go func() { log.Fatal(http.ListenAndServe(listenhttp, letsEncryptManager.HTTPHandler(nil))) }()
 	srv := &http.Server{
 		Addr:      listenhttps,
 		TLSConfig: &tls.Config{GetCertificate: letsEncryptManager.GetCertificate},
 		Handler:   http.FileServer(MarkdownFileSystem(http.Dir(serve))),
 	}
 
-	go func() { log.Fatal(http.ListenAndServe(listenhttp, http.HandlerFunc(letsencrypt.RedirectHTTP))) }()
 	log.Fatal(srv.ListenAndServeTLS("", ""))
 }
 
